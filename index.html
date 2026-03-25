@@ -3,120 +3,157 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Uber決策系統 Pro</title>
+<title>Uber 決策系統</title>
 
 <style>
-body {font-family: Arial; background:#000; color:#fff; text-align:center; padding:20px;}
-h1 {margin-bottom:10px;}
-input {
-  width:90%;
-  padding:15px;
-  font-size:18px;
-  border-radius:10px;
-  border:none;
+body {
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont;
+  background:#000;
+  color:#fff;
+  text-align:center;
+  padding:20px;
 }
+h1 {font-size:28px;margin-bottom:10px;}
+
+.section {margin-top:20px;}
+
 button {
   width:90%;
   padding:16px;
-  margin:10px;
+  margin:8px;
   font-size:18px;
   border-radius:12px;
   border:none;
+  background:#1f2937;
+  color:#fff;
 }
-#result {margin-top:30px; font-size:36px; font-weight:bold;}
-#reason {margin-top:10px; font-size:16px; color:#aaa;}
-</style>
-</head>
 
+.selected {
+  background:#2563eb;
+}
+
+#result {
+  margin-top:30px;
+  font-size:36px;
+  font-weight:bold;
+}
+
+#reason {
+  margin-top:10px;
+  font-size:16px;
+  color:#aaa;
+}
+</style>
+
+</head>
 <body>
 
-<h1>🚕 Uber決策 Pro</h1>
+<h1>🚕 Uber 決策</h1>
 
-<input id="loc" placeholder="輸入地點（例：南港、信義、基金三路）">
+<div class="section">
+  <div>你在哪裡</div>
+  <button onclick="setLoc('keelung',this)">基隆 / 基金三路</button>
+  <button onclick="setLoc('nangang',this)">南港</button>
+  <button onclick="setLoc('neihu',this)">內湖</button>
+  <button onclick="setLoc('songshan',this)">松山</button>
+  <button onclick="setLoc('xinyi',this)">信義</button>
+  <button onclick="setLoc('zhongshan',this)">中山</button>
+</div>
 
-<button onclick="startVoice()">🎤 語音輸入</button>
-<button onclick="decide()">⚡ 立即判斷</button>
+<div class="section">
+  <div>目前狀況</div>
+  <button onclick="setState('normal',this)">正常</button>
+  <button onclick="setState('wait',this)">等很久</button>
+  <button onclick="setState('short',this)">連續短單</button>
+  <button onclick="setState('low',this)">單價變低</button>
+  <button onclick="setState('tired',this)">心煩 / 累</button>
+</div>
 
-<div id="result">等待輸入</div>
+<div class="section">
+  <button onclick="decide()" style="background:#16a34a;">⚡ 立即判斷</button>
+</div>
+
+<div id="result">等待選擇</div>
 <div id="reason"></div>
 
 <script>
 
-// 語音輸入
-function startVoice(){
-  let recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-  recognition.lang = "zh-TW";
-  recognition.start();
-  recognition.onresult = function(event){
-    document.getElementById("loc").value = event.results[0][0].transcript;
-  }
+let loc="", state="";
+
+function clearSelect(group){
+  group.forEach(btn=>btn.classList.remove("selected"));
 }
 
-// 主判斷
-function decide(){
-  let loc = document.getElementById("loc").value;
-  let h = new Date().getHours();
+function setLoc(l,el){
+  loc=l;
+  clearSelect(document.querySelectorAll(".section:nth-child(2) button"));
+  el.classList.add("selected");
+}
 
+function setState(s,el){
+  state=s;
+  clearSelect(document.querySelectorAll(".section:nth-child(3) button"));
+  el.classList.add("selected");
+}
+
+function decide(){
+  let h = new Date().getHours();
   let result="", reason="";
 
-  // 基隆區
-  if(loc.includes("基隆") || loc.includes("基金")){
-    if(h>=13 && h<16){
-      result="❌ 不要開";
-      reason="低效時段，直接往台北移動";
-    } else {
-      result="⚠️ 移動";
-      reason="基隆單少，往南港/內湖";
+  if(!loc){
+    result="請選地點";
+    reason="";
+    show(result,reason);
+    return;
+  }
+
+  if(state==="tired"){
+    show("❌ 先休息","情緒不穩會做錯決策");
+    return;
+  }
+
+  if(state==="wait" || state==="short" || state==="low"){
+    show("❌ 離開","你已經在被系統利用");
+    return;
+  }
+
+  // 時段邏輯
+  if(h>=13 && h<16){
+    if(loc==="keelung"){
+      show("❌ 不要開","低效時段 + 住宅區");
+    }else{
+      show("⚠️ 先移動","時間還沒到賺錢點");
     }
+    return;
   }
 
-  // 南港
-  else if(loc.includes("南港")){
-    if(h>=16 && h<=19){
-      result="🔥 開APP";
-      reason="高峰期，容易有單";
-    } else {
-      result="⚠️ 視情況";
-      reason="容易短單，觀察再跑";
+  if(h>=16 && h<19){
+    if(loc==="keelung"){
+      show("⚠️ 移動","往台北主戰區");
+    }else if(loc==="neihu"||loc==="songshan"||loc==="xinyi"||loc==="zhongshan"){
+      show("🔥 開APP","高峰賺錢時段");
+    }else{
+      show("⚠️ 視情況","位置不夠好");
     }
+    return;
   }
 
-  // 信義
-  else if(loc.includes("信義")){
-    if(h>=17 && h<=21){
-      result="🔥 開APP";
-      reason="商業區高峰";
-    } else {
-      result="⚠️ 避短單";
-      reason="容易低價單";
+  if(h>=19 && h<22){
+    if(loc==="keelung"){
+      show("🏁 收工","不要再被亂派單");
+    }else{
+      show("⚠️ 挑單","避免短單收尾");
     }
+    return;
   }
 
-  // 中山
-  else if(loc.includes("中山")){
-    result="⚠️ 可跑";
-    reason="流動區，注意單價";
-  }
+  show("⚠️ 視情況","觀察單量再決定");
+}
 
-  // 內湖
-  else if(loc.includes("內湖")){
-    if(h>=16 && h<=19){
-      result="🔥 開APP";
-      reason="下班潮";
-    } else {
-      result="⚠️ 視情況";
-      reason="非高峰單少";
-    }
-  }
-
-  // 未知
-  else{
-    result="⚠️ 視情況";
-    reason="觀察單量再決定";
-  }
-
-  document.getElementById("result").innerText=result;
-  document.getElementById("reason").innerText=reason;
+function show(r,rs){
+  document.getElementById("result").innerText=r;
+  document.getElementById("reason").innerText=rs;
 }
 
 </script>
