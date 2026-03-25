@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Uber決策</title>
+<style>
+body {font-family: Arial; background:#111; color:#fff; text-align:center; padding:20px;}
+button {width:90%; padding:15px; margin:10px; font-size:18px; border-radius:10px; border:none;}
+#r {margin-top:30px; font-size:26px;}
+</style>
+</head>
+<body>
+
+<h1>🚕 Uber決策</h1>
+
+<button onclick="d(1)">到熱點</button>
+<button onclick="d(2)">高峰開始</button>
+<button onclick="d(3)">等太久</button>
+<button onclick="d(4)">連續短單</button>
+<button onclick="d(5)">單價變低</button>
+<button onclick="d(6)">心煩</button>
+
+<div id="r">請按按鈕</div>
+
+<script>
+function d(x){
+let t="";
+if(x==1)t="開APP";
+if(x==2)t="開APP";
+if(x==3)t="下線移動";
+if(x==4)t="停止離開";
+if(x==5)t="下線";
+if(x==6)t="休息";
+document.getElementById("r").innerText=t;
+}
+</script>
+
+</body>
+</html>
