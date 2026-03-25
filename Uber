@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Uber決策工具</title>
+<style>
+body {
+  font-family: -apple-system, BlinkMacSystemFont;
+  background: #111;
+  color: #fff;
+  text-align: center;
+  padding: 20px;
+}
+h1 {
+  margin-bottom: 20px;
+}
+button {
+  width: 90%;
+  max-width: 400px;
+  padding: 15px;
+  margin: 10px;
+  font-size: 18px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+}
+.green { background: #28a745; }
+.red { background: #dc3545; }
+.yellow { background: #ffc107; color:#000; }
+.blue { background: #007bff; }
+#result {
+  margin-top: 30px;
+  font-size: 28px;
+  font-weight: bold;
+}
+</style>
+</head>
+<body>
+
+<h1>🚕 Uber一鍵決策</h1>
+
+<button class="green" onclick="decision('start')">📍 到熱點 / 剛到位</button>
+<button class="blue" onclick="decision('peak')">⏰ 高峰開始（4:30~7:00）</button>
+<button class="yellow" onclick="decision('wait')">⏳ 等超過10分鐘沒單</button>
+<button class="red" onclick="decision('short')">⚠️ 連續短單2~3單</button>
+<button class="yellow" onclick="decision('wrong')">↩️ 一直派反方向</button>
+<button class="red" onclick="decision('low')">💸 單價越來越低</button>
+<button class="yellow" onclick="decision('stuck')">📍 同一區太久</button>
+<button class="red" onclick="decision('tired')">😵 心煩 / 急躁</button>
+<button class="green" onclick="decision('rain')">🌧️ 下雨開始</button>
+<button class="blue" onclick="decision('end')">🏁 接近7~8點</button>
+
+<div id="result">請選擇目前狀況</div>
+
+<script>
+function decision(type){
+  let result = "";
+
+  switch(type){
+    case "start":
+      result = "✅ 開APP（吃第一單）";
+      break;
+    case "peak":
+      result = "✅ 開APP（高機率好單）";
+      break;
+    case "wait":
+      result = "❌ 下線 → 移動";
+      break;
+    case "short":
+      result = "❌ 停止 → 離開區域";
+      break;
+    case "wrong":
+      result = "⚠️ 關順風";
+      break;
+    case "low":
+      result = "❌ 下線（進入低價區）";
+      break;
+    case "stuck":
+      result = "⚠️ 強制移動";
+      break;
+    case "tired":
+      result = "🛑 休息10分鐘";
+      break;
+    case "rain":
+      result = "🔥 立即開APP";
+      break;
+    case "end":
+      result = "🏁 可收工 / 挑最後好單";
+      break;
+  }
+
+  document.getElementById("result").innerText = result;
+}
+</script>
+
+</body>
+</html>
