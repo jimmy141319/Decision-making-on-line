@@ -3,19 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Uber決策系統</title>
+<title>Uber決策系統 Pro</title>
 
 <style>
-body {
-  font-family: Arial;
-  background:#111;
-  color:#fff;
-  text-align:center;
-  padding:20px;
-}
+body {font-family: Arial; background:#000; color:#fff; text-align:center; padding:20px;}
 h1 {margin-bottom:10px;}
-#time {margin-bottom:20px; color:#aaa;}
-
+input {
+  width:90%;
+  padding:15px;
+  font-size:18px;
+  border-radius:10px;
+  border:none;
+}
 button {
   width:90%;
   padding:16px;
@@ -24,92 +23,100 @@ button {
   border-radius:12px;
   border:none;
 }
-
-#result {
-  margin-top:30px;
-  font-size:32px;
-  font-weight:bold;
-}
-
-#sub {
-  margin-top:10px;
-  font-size:16px;
-  color:#aaa;
-}
+#result {margin-top:30px; font-size:36px; font-weight:bold;}
+#reason {margin-top:10px; font-size:16px; color:#aaa;}
 </style>
 </head>
 
 <body>
 
-<h1>🚕 Uber決策系統</h1>
-<div id="time"></div>
+<h1>🚕 Uber決策 Pro</h1>
 
-<button onclick="autoDecision()">⚡ 一鍵判斷（推薦）</button>
+<input id="loc" placeholder="輸入地點（例：南港、信義、基金三路）">
 
-<hr style="margin:25px 0; opacity:0.2;">
+<button onclick="startVoice()">🎤 語音輸入</button>
+<button onclick="decide()">⚡ 立即判斷</button>
 
-<button onclick="manual(1)">📍 到熱點</button>
-<button onclick="manual(2)">⏳ 等太久</button>
-<button onclick="manual(3)">⚠️ 連續短單</button>
-<button onclick="manual(4)">💸 單價變低</button>
-<button onclick="manual(5)">😵 心煩</button>
-
-<div id="result">請按按鈕</div>
-<div id="sub"></div>
+<div id="result">等待輸入</div>
+<div id="reason"></div>
 
 <script>
 
-// 顯示時間
-function updateTime(){
-  let now = new Date();
-  let h = now.getHours();
-  let m = now.getMinutes();
-  document.getElementById("time").innerText =
-  "現在時間：" + h + ":" + (m<10?"0"+m:m);
+// 語音輸入
+function startVoice(){
+  let recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+  recognition.lang = "zh-TW";
+  recognition.start();
+  recognition.onresult = function(event){
+    document.getElementById("loc").value = event.results[0][0].transcript;
+  }
 }
-setInterval(updateTime,1000);
 
-// 一鍵自動判斷
-function autoDecision(){
+// 主判斷
+function decide(){
+  let loc = document.getElementById("loc").value;
   let h = new Date().getHours();
-  let main="", sub="";
 
-  if(h>=16 && h<=19){
-    main="🔥 開APP";
-    sub="高峰時段";
+  let result="", reason="";
+
+  // 基隆區
+  if(loc.includes("基隆") || loc.includes("基金")){
+    if(h>=13 && h<16){
+      result="❌ 不要開";
+      reason="低效時段，直接往台北移動";
+    } else {
+      result="⚠️ 移動";
+      reason="基隆單少，往南港/內湖";
+    }
   }
-  else if(h>=19 && h<=22){
-    main="⚠️ 選單跑";
-    sub="避免短單";
+
+  // 南港
+  else if(loc.includes("南港")){
+    if(h>=16 && h<=19){
+      result="🔥 開APP";
+      reason="高峰期，容易有單";
+    } else {
+      result="⚠️ 視情況";
+      reason="容易短單，觀察再跑";
+    }
   }
-  else if(h>=13 && h<16){
-    main="❌ 不開";
-    sub="低效時段";
+
+  // 信義
+  else if(loc.includes("信義")){
+    if(h>=17 && h<=21){
+      result="🔥 開APP";
+      reason="商業區高峰";
+    } else {
+      result="⚠️ 避短單";
+      reason="容易低價單";
+    }
   }
+
+  // 中山
+  else if(loc.includes("中山")){
+    result="⚠️ 可跑";
+    reason="流動區，注意單價";
+  }
+
+  // 內湖
+  else if(loc.includes("內湖")){
+    if(h>=16 && h<=19){
+      result="🔥 開APP";
+      reason="下班潮";
+    } else {
+      result="⚠️ 視情況";
+      reason="非高峰單少";
+    }
+  }
+
+  // 未知
   else{
-    main="⚠️ 視情況";
-    sub="觀察再開";
+    result="⚠️ 視情況";
+    reason="觀察單量再決定";
   }
 
-  show(main,sub);
-}
-
-// 手動判斷
-function manual(x){
-  let main="", sub="";
-
-  if(x==1){main="✅ 開APP"; sub="吃第一單";}
-  if(x==2){main="❌ 下線"; sub="移動";}
-  if(x==3){main="❌ 停止"; sub="離開";}
-  if(x==4){main="❌ 下線"; sub="低價區";}
-  if(x==5){main="🛑 休息"; sub="10分鐘";}
-
-  show(main,sub);
-}
-
-function show(main,sub){
-  document.getElementById("result").innerText=main;
-  document.getElementById("sub").innerText=sub;
+  document.getElementById("result").innerText=result;
+  document.getElementById("reason").innerText=reason;
 }
 
 </script>
