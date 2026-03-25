@@ -3,200 +3,192 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Uber 決策系統</title>
+<title>Uber決策系統 Pro</title>
 
 <style>
 body {
-  margin:0;
-  font-family:-apple-system,BlinkMacSystemFont;
-  background:#000;
-  color:#fff;
-  text-align:center;
-  padding:15px;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont;
+  background: #000;
+  color: #fff;
+  text-align: center;
 }
-h1 {font-size:26px;margin-bottom:10px;}
 
-.section {margin-top:15px;}
+.container {
+  padding: 20px;
+}
+
+h1 {
+  font-size: 26px;
+  margin-bottom: 10px;
+}
+
+.section {
+  margin: 20px 0;
+}
 
 button {
-  width:92%;
-  padding:14px;
-  margin:6px;
-  font-size:17px;
-  border-radius:10px;
-  border:none;
-  background:#1f2937;
-  color:#fff;
+  width: 90%;
+  margin: 8px 0;
+  padding: 15px;
+  font-size: 18px;
+  border-radius: 12px;
+  border: none;
+  background: #1f2937;
+  color: #fff;
 }
 
-.selected {background:#2563eb;}
-
-#result {
-  margin-top:25px;
-  font-size:34px;
-  font-weight:bold;
+button.active {
+  background: #2563eb;
 }
 
-#reason {
-  margin-top:8px;
-  font-size:15px;
-  color:#aaa;
+.result {
+  margin-top: 30px;
+  padding: 20px;
+  background: #111;
+  border-radius: 12px;
+}
+
+.big {
+  font-size: 22px;
+  margin-bottom: 10px;
+}
+
+.small {
+  font-size: 16px;
+  color: #ccc;
 }
 </style>
-
 </head>
+
 <body>
 
-<h1>🚕 即時決策</h1>
+<div class="container">
+
+<h1>🚕 Uber決策 Pro</h1>
 
 <!-- 城市 -->
 <div class="section">
-  <div>選城市</div>
-  <button onclick="setCity('taipei',this)">台北市</button>
-  <button onclick="setCity('newtaipei',this)">新北市</button>
-  <button onclick="setCity('keelung',this)">基隆</button>
-  <button onclick="setCity('taoyuan',this)">桃園</button>
-  <button onclick="setCity('yilan',this)">宜蘭</button>
+<div>選城市</div>
+<button onclick="setCity(this,'台北')">台北</button>
+<button onclick="setCity(this,'新北')">新北</button>
+<button onclick="setCity(this,'基隆')">基隆</button>
+<button onclick="setCity(this,'桃園')">桃園</button>
+<button onclick="setCity(this,'宜蘭')">宜蘭</button>
 </div>
 
 <!-- 區域 -->
-<div class="section" id="areaBox">
-  <div>選區域</div>
+<div class="section">
+<div>選區域</div>
+<button onclick="setArea(this,'市區')">市區</button>
+<button onclick="setArea(this,'商業區')">商業區</button>
+<button onclick="setArea(this,'住宅區')">住宅區</button>
+<button onclick="setArea(this,'觀光區')">觀光區</button>
+<button onclick="setArea(this,'偏遠區')">偏遠區</button>
 </div>
 
 <!-- 天氣 -->
 <div class="section">
-  <div>天氣</div>
-  <button onclick="setWeather('sun',this)">晴天</button>
-  <button onclick="setWeather('rain',this)">小雨</button>
-  <button onclick="setWeather('heavy',this)">大雨</button>
+<div>天氣</div>
+<button onclick="setWeather(this,'晴天')">晴天</button>
+<button onclick="setWeather(this,'小雨')">小雨</button>
+<button onclick="setWeather(this,'大雨')">大雨</button>
 </div>
 
-<!-- 狀態 -->
+<!-- 時段 -->
 <div class="section">
-  <div>狀態</div>
-  <button onclick="setState('normal',this)">正常</button>
-  <button onclick="setState('wait',this)">等很久</button>
-  <button onclick="setState('short',this)">連續短單</button>
-  <button onclick="setState('traffic',this)">很塞車</button>
+<div>時段</div>
+<button onclick="setTime(this,'尖峰')">尖峰</button>
+<button onclick="setTime(this,'一般')">一般</button>
+<button onclick="setTime(this,'離峰')">離峰</button>
 </div>
 
-<div class="section">
-  <button onclick="decide()" style="background:#16a34a;">⚡ 判斷</button>
+<!-- 按鈕 -->
+<button style="background:#16a34a;font-size:20px" onclick="runDecision()">
+⚡ 立即決策
+</button>
+
+<!-- 結果 -->
+<div id="result" class="result">
+<div class="big">等待輸入</div>
 </div>
 
-<div id="result">等待判斷</div>
-<div id="reason"></div>
+</div>
 
 <script>
 
-let city="", area="", weather="", state="";
+let city='',area='',weather='',time='';
 
-const areas = {
-  taipei:["內湖","南港","松山","信義","中山","大安","台北車站","士林北投"],
-  newtaipei:["板橋","新莊","三重","中和","永和","新店","汐止","三峽"],
-  keelung:["基金三路","市區","七堵","外木山"],
-  taoyuan:["桃園市區","中壢","南崁","青埔"],
-  yilan:["礁溪","羅東","宜蘭市"]
-};
-
-function setCity(c,el){
-  city=c;
-  clearSelect(el.parentNode);
-  el.classList.add("selected");
-  loadAreas();
+function clearActive(group){
+  group.forEach(btn=>btn.classList.remove('active'));
 }
 
-function loadAreas(){
-  let box=document.getElementById("areaBox");
-  box.innerHTML="<div>選區域</div>";
-  if(!city)return;
-  areas[city].forEach(a=>{
-    let btn=document.createElement("button");
-    btn.innerText=a;
-    btn.onclick=function(){setArea(a,this)};
-    box.appendChild(btn);
-  });
+function setCity(btn,val){
+  clearActive(btn.parentNode.querySelectorAll('button'));
+  btn.classList.add('active');
+  city=val;
 }
 
-function setArea(a,el){
-  area=a;
-  clearSelect(el.parentNode);
-  el.classList.add("selected");
+function setArea(btn,val){
+  clearActive(btn.parentNode.querySelectorAll('button'));
+  btn.classList.add('active');
+  area=val;
 }
 
-function setWeather(w,el){
-  weather=w;
-  clearSelect(el.parentNode);
-  el.classList.add("selected");
+function setWeather(btn,val){
+  clearActive(btn.parentNode.querySelectorAll('button'));
+  btn.classList.add('active');
+  weather=val;
 }
 
-function setState(s,el){
-  state=s;
-  clearSelect(el.parentNode);
-  el.classList.add("selected");
+function setTime(btn,val){
+  clearActive(btn.parentNode.querySelectorAll('button'));
+  btn.classList.add('active');
+  time=val;
 }
 
-function clearSelect(parent){
-  parent.querySelectorAll("button").forEach(b=>b.classList.remove("selected"));
-}
+function runDecision(){
 
-function decide(){
+  let action = "";
+  let move = "";
+  let reason = "";
 
-  if(!city || !area){
-    show("請選地區","");
-    return;
+  // 核心邏輯（商業決策）
+  if(area === "偏遠區" || area === "觀光區"){
+    action = "建議移動";
+    move = "往市區或商業區";
+    reason = "需求不穩，空車率高";
   }
 
-  let h=new Date().getHours();
-
-  // 狀態優先
-  if(state==="wait" || state==="short" || state==="traffic"){
-    show("❌ 離開","已進入低效狀態");
-    return;
+  else if(weather === "大雨"){
+    action = "建議立即上線";
+    move = "留在原地或市區";
+    reason = "需求大幅提升";
   }
 
-  // 區域分類
-  let good=["信義","松山","中山","板橋","南港"];
-  let mid=["內湖","中和","新店","三重","永和","新莊"];
-  let bad=["基隆","三峽","外木山","基金三路"];
-
-  // 時間
-  if(h>=13 && h<16){
-    if(weather==="heavy"){
-      show("⚠️ 可開","大雨短暫機會");
-    }else{
-      show("❌ 不要開","低效時段");
-    }
-    return;
+  else if(time === "尖峰"){
+    action = "建議上線";
+    move = "市區或商業區";
+    reason = "需求高峰";
   }
 
-  if(h>=16 && h<19){
-    if(good.includes(area)){
-      show("🔥 開APP","主戰區+黃金時段");
-    }else if(mid.includes(area)){
-      show("⚠️ 移動","往主戰區");
-    }else{
-      show("❌ 離開","區域錯誤");
-    }
-    return;
+  else if(time === "離峰"){
+    action = "建議移動";
+    move = "熱門區再開APP";
+    reason = "單量偏低";
   }
 
-  if(h>=19 && h<22){
-    if(good.includes(area)){
-      show("⚠️ 挑單","避免短單");
-    }else{
-      show("🏁 收工","避免被系統吃");
-    }
-    return;
+  else{
+    action = "可正常接單";
+    move = "觀察3-5分鐘";
+    reason = "市場一般";
   }
 
-  show("⚠️ 視情況","觀察再決定");
-}
-
-function show(r,rs){
-  document.getElementById("result").innerText=r;
-  document.getElementById("reason").innerText=rs;
+  document.getElementById("result").innerHTML = `
+    <div class="big">👉 ${action}</div>
+    <div class="small">📍 行動：${move}</div>
+    <div class="small">🧠 原因：${reason}</div>
+  `;
 }
 
 </script>
