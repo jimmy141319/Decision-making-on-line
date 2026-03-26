@@ -1,190 +1,433 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Driver Decision Pro</title>
-
-<style>
-body{
-  margin:0;
-  font-family:-apple-system;
-  background:#000;
-  color:#fff;
-  text-align:center;
-}
-.container{padding:20px;}
-h1{font-size:26px;margin-bottom:10px;}
-.section{margin:15px 0;}
-button{
-  width:90%;
-  margin:6px 0;
-  padding:14px;
-  font-size:17px;
-  border-radius:10px;
-  border:none;
-  background:#1f2937;
-  color:#fff;
-}
-.active{background:#2563eb;}
-.run{background:#16a34a;font-size:20px;}
-
-.result{
-  margin-top:25px;
-  padding:20px;
-  background:#111;
-  border-radius:12px;
-  text-align:left;
-}
-
-.big{font-size:22px;margin-bottom:10px;}
-.line{margin:8px 0;color:#ccc;}
-.nav{margin-top:10px;color:#60a5fa;}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Driver Decision</title>
+  <style>
+    :root{
+      --bg:#0b1020;
+      --card:#121a2f;
+      --line:#22304f;
+      --text:#f4f7fb;
+      --muted:#9fb0cc;
+      --blue:#2563eb;
+      --green:#16a34a;
+      --yellow:#f59e0b;
+      --red:#ef4444;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans TC",Arial,sans-serif;
+    }
+    .wrap{
+      max-width:760px;
+      margin:0 auto;
+      padding:16px;
+    }
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:16px;
+      margin-bottom:14px;
+    }
+    h1{
+      margin:0 0 8px;
+      font-size:28px;
+    }
+    .sub{
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.7;
+    }
+    .label{
+      font-size:14px;
+      color:var(--muted);
+      margin:0 0 8px;
+    }
+    select, button{
+      width:100%;
+      border:none;
+      border-radius:14px;
+      padding:15px 14px;
+      font-size:17px;
+    }
+    select{
+      background:#0d1730;
+      color:var(--text);
+      border:1px solid var(--line);
+      outline:none;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+    }
+    .btn{
+      background:var(--blue);
+      color:#fff;
+      font-weight:700;
+      cursor:pointer;
+    }
+    .btn.secondary{
+      background:#1f2937;
+    }
+    .result{
+      background:#0d1730;
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:18px;
+    }
+    .title{
+      font-size:30px;
+      font-weight:800;
+      margin-bottom:12px;
+    }
+    .tag{
+      display:inline-block;
+      padding:8px 12px;
+      border-radius:999px;
+      font-size:13px;
+      font-weight:700;
+      margin-bottom:12px;
+    }
+    .low{background:rgba(22,163,74,.16);color:#8bf0aa;border:1px solid rgba(22,163,74,.35)}
+    .mid{background:rgba(245,158,11,.16);color:#ffd27a;border:1px solid rgba(245,158,11,.35)}
+    .high{background:rgba(239,68,68,.16);color:#ff9b9b;border:1px solid rgba(239,68,68,.35)}
+    .row{
+      text-align:left;
+      margin-top:12px;
+    }
+    .row b{
+      display:block;
+      margin-bottom:4px;
+      color:#dbe8ff;
+      font-size:14px;
+    }
+    .row div{
+      color:#c7d5ef;
+      line-height:1.7;
+    }
+    .kpis{
+      display:grid;
+      grid-template-columns:1fr 1fr 1fr;
+      gap:10px;
+      margin-top:14px;
+    }
+    .kpi{
+      background:#0a1326;
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px;
+      text-align:left;
+    }
+    .kpi .t{
+      font-size:12px;
+      color:var(--muted);
+    }
+    .kpi .v{
+      font-size:18px;
+      font-weight:800;
+      margin-top:4px;
+    }
+    .note{
+      font-size:12px;
+      color:var(--muted);
+      line-height:1.7;
+      margin-top:12px;
+    }
+    @media (max-width:640px){
+      .grid,.kpis{grid-template-columns:1fr}
+      .title{font-size:26px}
+    }
+  </style>
 </head>
-
 <body>
+  <div class="wrap">
+    <div class="card">
+      <h1>🚕 Driver Decision</h1>
+      <div class="sub">先選城市，再選分區，再選現在的狀態。系統會直接告訴你：要不要繼續待、要不要移動、下一步往哪裡去。</div>
+    </div>
 
-<div class="container">
+    <div class="card">
+      <div class="grid">
+        <div>
+          <div class="label">城市</div>
+          <select id="city" onchange="loadZones()">
+            <option value="">請選城市</option>
+            <option value="taipei">台北市</option>
+            <option value="newtaipei">新北市</option>
+            <option value="keelung">基隆</option>
+            <option value="taoyuan">桃園</option>
+            <option value="yilan">宜蘭</option>
+          </select>
+        </div>
+        <div>
+          <div class="label">分區</div>
+          <select id="zone">
+            <option value="">請先選城市</option>
+          </select>
+        </div>
+      </div>
 
-<h1>🚕 即時決策 Pro</h1>
+      <div class="grid" style="margin-top:12px;">
+        <div>
+          <div class="label">天氣</div>
+          <select id="weather">
+            <option value="sun">晴天</option>
+            <option value="light_rain">小雨</option>
+            <option value="heavy_rain">大雨</option>
+          </select>
+        </div>
+        <div>
+          <div class="label">狀態</div>
+          <select id="state">
+            <option value="normal">正常</option>
+            <option value="wait">等很久</option>
+            <option value="short">連續短單</option>
+            <option value="traffic">很塞車</option>
+          </select>
+        </div>
+      </div>
 
-<!-- 地點 -->
-<div class="section">
-<div>你在哪</div>
-<button onclick="setArea(this,'內湖')">內湖</button>
-<button onclick="setArea(this,'南港')">南港</button>
-<button onclick="setArea(this,'信義')">信義</button>
-<button onclick="setArea(this,'松山')">松山</button>
-<button onclick="setArea(this,'板橋')">板橋</button>
-<button onclick="setArea(this,'基隆')">基隆</button>
-<button onclick="setArea(this,'外木山')">外木山</button>
-<button onclick="setArea(this,'三峽')">三峽</button>
-</div>
+      <div class="grid" style="margin-top:12px;">
+        <button class="btn" onclick="runDecision()">⚡ 立即判斷</button>
+        <button class="btn secondary" onclick="resetAll()">重設</button>
+      </div>
+    </div>
 
-<!-- 狀態 -->
-<div class="section">
-<div>目前狀態</div>
-<button onclick="setState(this,'正常')">正常</button>
-<button onclick="setState(this,'等很久')">等很久</button>
-<button onclick="setState(this,'短單')">短單</button>
-</div>
+    <div class="card result" id="resultBox">
+      <div class="title">等待判斷</div>
+      <div class="tag mid">尚未計算</div>
 
-<button class="run" onclick="run()">⚡ 判斷</button>
+      <div class="row">
+        <b>建議動作</b>
+        <div>請先選城市與分區。</div>
+      </div>
 
-<div id="result" class="result">
-<div class="big">等待判斷</div>
-</div>
+      <div class="row">
+        <b>原因</b>
+        <div>這版是你自己試跑用，重點是先看判斷有沒有貼近你的實戰感覺。</div>
+      </div>
 
-</div>
+      <div class="row">
+        <b>下一步</b>
+        <div>完成選擇後再按「立即判斷」。</div>
+      </div>
 
-<script>
+      <div class="kpis">
+        <div class="kpi">
+          <div class="t">現在時段</div>
+          <div class="v" id="kpiTime">--</div>
+        </div>
+        <div class="kpi">
+          <div class="t">區域強度</div>
+          <div class="v" id="kpiZone">--</div>
+        </div>
+        <div class="kpi">
+          <div class="t">風險等級</div>
+          <div class="v" id="kpiRisk">--</div>
+        </div>
+      </div>
 
-let area="",state="";
+      <div class="note">
+        用法很簡單：只要你覺得怪怪的、等太久、或不知道該不該留，就打開這頁。
+      </div>
+    </div>
+  </div>
 
-function clear(btns){
-  btns.forEach(b=>b.classList.remove('active'));
-}
+  <script>
+    const zoneData = {
+      taipei: [
+        ["信義核心", "prime", "松山 / 中山"],
+        ["南港經貿", "prime", "信義 / 內湖"],
+        ["內湖科技", "mid", "南港 / 松山"],
+        ["松山車站", "prime", "信義 / 中山"],
+        ["中山商圈", "prime", "松山 / 台北車站"],
+        ["台北車站", "mid", "中山 / 板橋"],
+        ["士林北投", "mid", "中山"],
+        ["文山景美", "weak", "大安 / 中正"]
+      ],
+      newtaipei: [
+        ["板橋核心", "prime", "台北車站 / 中山"],
+        ["新莊副都心", "mid", "板橋 / 三重"],
+        ["三重蘆洲", "mid", "中山 / 台北車站"],
+        ["中和永和", "mid", "板橋 / 中正"],
+        ["新店", "weak", "中正 / 大安"],
+        ["汐止", "mid", "南港"],
+        ["三峽北大", "weak", "板橋"],
+        ["淡水", "weak", "士林北投"]
+      ],
+      keelung: [
+        ["基隆市區", "weak", "南港 / 內湖"],
+        ["七堵暖暖", "mid", "汐止 / 南港"],
+        ["基金三路", "weak", "內湖 / 南港"],
+        ["外木山", "dead", "基隆市區 / 南港"]
+      ],
+      taoyuan: [
+        ["桃園市區", "mid", "南崁 / 中壢"],
+        ["中壢", "mid", "青埔 / 桃園市區"],
+        ["青埔高鐵", "prime", "中壢 / 機場"],
+        ["南崁蘆竹", "mid", "桃園市區 / 機場"],
+        ["桃園機場", "prime", "青埔 / 南崁"]
+      ],
+      yilan: [
+        ["羅東", "prime", "宜蘭市"],
+        ["宜蘭市", "mid", "羅東 / 礁溪"],
+        ["礁溪", "mid", "宜蘭市 / 羅東"],
+        ["頭城", "weak", "礁溪"]
+      ]
+    };
 
-function setArea(btn,val){
-  clear(btn.parentNode.querySelectorAll('button'));
-  btn.classList.add('active');
-  area=val;
-}
+    function loadZones(){
+      const city = document.getElementById("city").value;
+      const zone = document.getElementById("zone");
+      zone.innerHTML = '<option value="">請選分區</option>';
+      if(!city || !zoneData[city]) return;
+      zoneData[city].forEach(item => {
+        const op = document.createElement("option");
+        op.value = item[0];
+        op.textContent = item[0];
+        zone.appendChild(op);
+      });
+    }
 
-function setState(btn,val){
-  clear(btn.parentNode.querySelectorAll('button'));
-  btn.classList.add('active');
-  state=val;
-}
+    function getTimeBucket(hour){
+      if(hour >= 13 && hour < 16) return "低效期";
+      if(hour >= 16 && hour < 19) return "主戰期";
+      if(hour >= 19 && hour < 22) return "收尾期";
+      return "一般";
+    }
 
-function run(){
+    function getMeta(city, zone){
+      if(!city || !zoneData[city]) return null;
+      return zoneData[city].find(x => x[0] === zone) || null;
+    }
 
-  if(!area){
-    show("請選地點","","","");
-    return;
-  }
+    function runDecision(){
+      const city = document.getElementById("city").value;
+      const zone = document.getElementById("zone").value;
+      const weather = document.getElementById("weather").value;
+      const state = document.getElementById("state").value;
 
-  let hour=new Date().getHours();
-  let risk=0;
+      if(!city || !zone){
+        render("請先選城市與分區","mid","請先補齊資料","沒有地點就沒辦法判斷","先選好再按一次","--","--","--");
+        return;
+      }
 
-  // 區域風險
-  let map={
-    "內湖":40,
-    "南港":20,
-    "信義":10,
-    "松山":20,
-    "板橋":25,
-    "基隆":60,
-    "外木山":80,
-    "三峽":75
-  };
+      const now = new Date();
+      const hour = now.getHours();
+      const timeBucket = getTimeBucket(hour);
+      const meta = getMeta(city, zone);
 
-  risk+=map[area]||40;
+      let risk = 0;
+      let zonePower = "中";
+      let nextMove = meta ? meta[2] : "附近主戰區";
 
-  // 時間
-  if(hour>=13 && hour<16) risk+=20;
-  if(hour>=16 && hour<19) risk-=20;
+      if(meta){
+        if(meta[1] === "prime"){ risk += 10; zonePower = "強"; }
+        if(meta[1] === "mid"){ risk += 30; zonePower = "中"; }
+        if(meta[1] === "weak"){ risk += 55; zonePower = "弱"; }
+        if(meta[1] === "dead"){ risk += 80; zonePower = "極弱"; }
+      }
 
-  // 狀態
-  if(state==="等很久") risk+=30;
-  if(state==="短單") risk+=30;
+      if(timeBucket === "低效期") risk += 20;
+      if(timeBucket === "主戰期") risk -= 20;
+      if(timeBucket === "收尾期") risk += 10;
 
-  // 導航建議（重點）
-  let next="";
-  let route="";
+      if(weather === "light_rain") risk -= 10;
+      if(weather === "heavy_rain") risk -= 15;
 
-  if(area==="內湖"){
-    next="南港軟體園區 / 信義";
-    route="👉 石潭路 → 南港經貿園區";
-  }
-  else if(area==="基隆"){
-    next="南港";
-    route="👉 62快速道路 → 南港";
-  }
-  else if(area==="外木山"){
-    next="基隆市區 → 南港";
-    route="👉 先回市區再往台北";
-  }
-  else if(area==="三峽"){
-    next="板橋";
-    route="👉 往板橋車站";
-  }
-  else{
-    next="熱門商業區";
-    route="👉 往人多的地方";
-  }
+      if(state === "wait") risk += 30;
+      if(state === "short") risk += 35;
+      if(state === "traffic") risk += 25;
 
-  let result="",action="",reason="";
+      if(risk < 0) risk = 0;
+      if(risk > 100) risk = 100;
 
-  if(risk>=70){
-    result="🚨 不建議停留";
-    action="👉 3分鐘沒單立即離開";
-    reason="高機率浪費時間";
-  }else if(risk>=40){
-    result="⚠️ 風險偏高";
-    action="👉 觀察3分鐘或準備移動";
-    reason="單量不穩";
-  }else{
-    result="✅ 可以跑";
-    action="👉 可繼續接單";
-    reason="狀況正常";
-  }
+      let title = "";
+      let level = "";
+      let action = "";
+      let reason = "";
+      let next = "";
 
-  show(result,action,reason,route,next);
-}
+      if(risk >= 70){
+        title = "🚨 不建議停留";
+        level = "high";
+        action = "建議直接離開，不要再等";
+        reason = "你現在這個位置與狀態，繼續待下去很容易在浪費時間。";
+        next = "下一步建議：往 " + nextMove;
+      }else if(risk >= 40){
+        title = "⚠️ 風險偏高";
+        level = "mid";
+        action = "建議先觀察 3 分鐘，沒改善就移動";
+        reason = "這裡不是最差，但也不是最有效率的位置。";
+        next = "如果沒單、短單、或很塞，改往 " + nextMove;
+      }else{
+        title = "✅ 可以接單";
+        level = "low";
+        action = "可以先繼續跑";
+        reason = "目前時間、區域與狀態相對合理，繼續待的風險較低。";
+        next = "若出現短單或空等，再改往 " + nextMove;
+      }
 
-function show(r,a,rs,route,next){
-  document.getElementById("result").innerHTML=`
-    <div class="big">${r}</div>
-    <div class="line">${a}</div>
-    <div class="line">🧠 ${rs}</div>
-    <div class="nav">📍 下一站：${next}</div>
-    <div class="nav">${route}</div>
-  `;
-}
+      render(title, level, action, reason, next, timeBucket, zonePower, risk + "%");
+    }
 
-</script>
+    function render(title, level, action, reason, next, timeText, zoneText, riskText){
+      const labelMap = { low:"低風險", mid:"中風險", high:"高風險" };
+      const box = document.getElementById("resultBox");
+      box.innerHTML = `
+        <div class="title">${title}</div>
+        <div class="tag ${level}">${labelMap[level] || "尚未計算"}</div>
 
+        <div class="row">
+          <b>建議動作</b>
+          <div>${action}</div>
+        </div>
+
+        <div class="row">
+          <b>原因</b>
+          <div>${reason}</div>
+        </div>
+
+        <div class="row">
+          <b>下一步</b>
+          <div>${next}</div>
+        </div>
+
+        <div class="kpis">
+          <div class="kpi">
+            <div class="t">現在時段</div>
+            <div class="v">${timeText}</div>
+          </div>
+          <div class="kpi">
+            <div class="t">區域強度</div>
+            <div class="v">${zoneText}</div>
+          </div>
+          <div class="kpi">
+            <div class="t">風險等級</div>
+            <div class="v">${riskText}</div>
+          </div>
+        </div>
+
+        <div class="note">
+          這版先解決「地點太少」和「沒有分層」兩個問題。你先跑，看看分區邏輯有沒有貼近你的實際感覺。
+        </div>
+      `;
+    }
+
+    function resetAll(){
+      document.getElementById("city").value = "";
+      document.getElementById("zone").innerHTML = '<option value="">請先選城市</option>';
+      document.getElementById("weather").value = "sun";
+      document.getElementById("state").value = "normal";
+      render("等待判斷","mid","請重新選擇","重設完成","先選城市與分區","--","--","--");
+    }
+  </script>
 </body>
 </html>
